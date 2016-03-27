@@ -31,6 +31,16 @@ THE SOFTWARE.
 ===============================================
 */
 
+/*
+Hardware setup:
+ MPU6050 Breakout ------------ Arduino
+ 5V ------------------------ 5V
+ SDA ----------------------- A4
+ SCL ----------------------- A5
+ GND ---------------------- GND
+*/
+
+
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
@@ -72,10 +82,10 @@ enum Gscale {
 double A_R[4]={-16384,-8192,-4096,-2048};
 double G_R[4]={-131,-65.5,-32.8,-16.4};
 
-//Configuracion Acelerometro // Opciones 0,   1    2   o  3
+//Configuracion Acelerometro // Opciones 2G, 4G   8G   o  16G
 int Ascale=AFS_8G;
 
-//Configuracion Giroscopio // Set the scale below either 0, 1 ,2  o 3
+//Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
 int Gscale=GFS_500DPS; 
 
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
@@ -126,10 +136,11 @@ void setup() {
     Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
     Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
+    */
     accelgyro.setXGyroOffset(220);
     accelgyro.setYGyroOffset(76);
     accelgyro.setZGyroOffset(-85);
-    Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
+    /*Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
     Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
     Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
     Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
