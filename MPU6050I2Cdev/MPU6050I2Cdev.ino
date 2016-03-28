@@ -83,7 +83,7 @@ double A_R[4]={-16384,-8192,-4096,-2048};
 double G_R[4]={-131,-65.5,-32.8,-16.4};
 
 //Configuracion Acelerometro // Opciones 2G, 4G   8G   o  16G
-int Ascale=AFS_8G;
+int Ascale=AFS_4G;
 
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
 int Gscale=GFS_500DPS; 
