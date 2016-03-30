@@ -46,14 +46,6 @@ Hardware setup:
 #include "I2Cdev.h"
 #include "MPU6050.h"
 
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    #include "Wire.h"
-#endif
-
-
-
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
@@ -83,10 +75,10 @@ double A_R[4]={-16384,-8192,-4096,-2048};
 double G_R[4]={-131,-65.5,-32.8,-16.4};
 
 //Configuracion Acelerometro // Opciones 2G, 4G   8G   o  16G
-int Ascale=AFS_4G;
+int Ascale=AFS_2G;
 
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
-int Gscale=GFS_500DPS; 
+int Gscale=GFS_250DPS; 
 
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
@@ -103,12 +95,6 @@ int Gscale=GFS_500DPS;
 bool blinkState = false;
 
 void setup() {
-    // join I2C bus (I2Cdev library doesn't do this automatically)
-    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-        Wire.begin();
-    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);
-    #endif
 
     // initialize serial communication
     // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
@@ -122,8 +108,8 @@ void setup() {
     // verify connection
     //Serial.println("Testing device connections...");
     //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-    accelgyro.setFullScaleGyroRange(Gscale);
-    accelgyro.setFullScaleAccelRange(Ascale);
+    //accelgyro.setFullScaleGyroRange(Gscale);
+    //accelgyro.setFullScaleAccelRange(Ascale);
     
     // use the code below to change accel/gyro offset values
     /*
@@ -160,7 +146,7 @@ void loop() {
           char key = Serial.read();
           char value= Serial.parseInt();
           changeranges(key,value);
-          Serial.print("Cambios");
+          //Serial.print("Cambios");
           delay(1000);
     }
     
@@ -172,6 +158,7 @@ void loop() {
     //accelgyro.getRotation(&gx, &gy, &gz);
     
     //Serial.print("Gyro range");Serial.println(accelgyro.getFullScaleGyroRange());
+    //Serial.print("Accel range");Serial.println(accelgyro.getFullScaleAccelRange());
     Serial.print(ax/A_R[Ascale]); Serial.print(" ");
     Serial.print(ay/A_R[Ascale]); Serial.print(" ");
     Serial.print(az/A_R[Ascale]); Serial.print(" ");
@@ -185,16 +172,62 @@ void loop() {
 void changeranges(char key,int value)
 {
   if (key == 'g'){
-    Gscale=value;
-    accelgyro.setFullScaleGyroRange(Gscale);
-    Serial.print("RangoGiroscopio:");Serial.println(accelgyro.getFullScaleGyroRange());   
-    return;
+    switch (value) {
+      case 0:
+        Gscale=GFS_250DPS;
+        accelgyro.setFullScaleGyroRange(Gscale);
+        Serial.print("RangoGiroscopio: 250dps");
+        break;
+      case 1:
+        Gscale=GFS_500DPS;
+        accelgyro.setFullScaleGyroRange(Gscale);
+        Serial.print("RangoGiroscopio: 500dps");
+        break;
+      case 2:
+        Gscale=GFS_1000DPS;
+        accelgyro.setFullScaleGyroRange(Gscale);
+        Serial.print("RangoGiroscopio: 1000dps");
+        break;
+      case 3:
+        Gscale=GFS_2000DPS;
+        accelgyro.setFullScaleGyroRange(Gscale);
+        Serial.print("RangoGiroscopio: 2000dps");
+        break;
+      
+      default: 
+        // if nothing else matches, do the default
+        // default is optional
+      break;
+    }
   }
   if (key == 'a'){
-    Ascale=value;
-    accelgyro.setFullScaleAccelRange(Ascale);   
-    Serial.print("RangoAcelerometro:");Serial.println(accelgyro.getFullScaleAccelRange());
-    return;
+    switch (value) {
+      case 0:
+        Ascale=AFS_2G;
+        accelgyro.setFullScaleAccelRange(Ascale);
+        Serial.print("RangoAcelerometro: 2G");
+        break;
+      case 1:
+        Ascale=AFS_4G;
+        accelgyro.setFullScaleAccelRange(Ascale);
+        Serial.print("RangoAcelerometro: 4G");
+        break;
+      case 2:
+        Ascale=AFS_8G;
+        accelgyro.setFullScaleAccelRange(Ascale);
+        Serial.print("RangoAcelerometro: 8G");
+        break;
+      case 3:
+        Ascale=AFS_16G;
+        accelgyro.setFullScaleAccelRange(Ascale);
+        Serial.print("RangoAcelerometro: 16G");
+        break;
+      
+      default: 
+        // if nothing else matches, do the default
+        // default is optional
+      break;
+    }
   }  
   return;
 }
