@@ -108,8 +108,8 @@ void setup() {
     // verify connection
     //Serial.println("Testing device connections...");
     //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-    //accelgyro.setFullScaleGyroRange(Gscale);
-    //accelgyro.setFullScaleAccelRange(Ascale);
+    accelgyro.setFullScaleGyroRange(Gscale);
+    accelgyro.setFullScaleAccelRange(Ascale);
     
     // use the code below to change accel/gyro offset values
     /*
@@ -140,14 +140,13 @@ void setup() {
 }
 
 void loop() {
-
      //Escuchando para cambiar :)
      if (Serial.available()){
           char key = Serial.read();
           char value= Serial.parseInt();
           changeranges(key,value);
           //Serial.print("Cambios");
-          delay(1000);
+          //delay(1000);
     }
     
     // read raw accel/gyro measurements from device
