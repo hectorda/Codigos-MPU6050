@@ -99,7 +99,6 @@ int Gscale=GFS_500DPS;
 // for a human.
 //#define OUTPUT_BINARY_ACCELGYRO
 
-
 #define LED_PIN 13
 bool blinkState = false;
 
@@ -125,6 +124,7 @@ void setup() {
     //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     accelgyro.setFullScaleGyroRange(Gscale);
     accelgyro.setFullScaleAccelRange(Ascale);
+    
     // use the code below to change accel/gyro offset values
     /*
     Serial.println("Updating internal sensor offsets...");
@@ -136,10 +136,11 @@ void setup() {
     Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
     Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
-    */
-    accelgyro.setXGyroOffset(220);
+     accelgyro.setXGyroOffset(220);
     accelgyro.setYGyroOffset(76);
     accelgyro.setZGyroOffset(-85);
+    */
+   
     /*Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
     Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
     Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
@@ -153,6 +154,16 @@ void setup() {
 }
 
 void loop() {
+
+     //Escuchando para cambiar :)
+     if (Serial.available()){
+          char key = Serial.read();
+          char value= Serial.parseInt();
+          changeranges(key,value);
+          Serial.print("Cambios");
+          delay(1000);
+    }
+    
     // read raw accel/gyro measurements from device
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     
@@ -161,12 +172,32 @@ void loop() {
     //accelgyro.getRotation(&gx, &gy, &gz);
     
     //Serial.print("Gyro range");Serial.println(accelgyro.getFullScaleGyroRange());
-        Serial.print(ax/A_R[Ascale]); Serial.print(" ");
-        Serial.print(ay/A_R[Ascale]); Serial.print(" ");
-        Serial.print(az/A_R[Ascale]); Serial.print(" ");
-        Serial.print(gx/G_R[Gscale]); Serial.print(" ");
-        Serial.print(gy/G_R[Gscale]); Serial.print(" ");
-        Serial.println(gz/G_R[Gscale]);
+    Serial.print(ax/A_R[Ascale]); Serial.print(" ");
+    Serial.print(ay/A_R[Ascale]); Serial.print(" ");
+    Serial.print(az/A_R[Ascale]); Serial.print(" ");
+    Serial.print(gx/G_R[Gscale]); Serial.print(" ");
+    Serial.print(gy/G_R[Gscale]); Serial.print(" ");
+    Serial.println(gz/G_R[Gscale]);
+    //delay(100);
 }
+
+
+void changeranges(char key,int value)
+{
+  if (key == 'g'){
+    Gscale=value;
+    accelgyro.setFullScaleGyroRange(Gscale);
+    Serial.print("RangoGiroscopio:");Serial.println(accelgyro.getFullScaleGyroRange());   
+    return;
+  }
+  if (key == 'a'){
+    Ascale=value;
+    accelgyro.setFullScaleAccelRange(Ascale);   
+    Serial.print("RangoAcelerometro:");Serial.println(accelgyro.getFullScaleAccelRange());
+    return;
+  }  
+  return;
+}
+
 
 
