@@ -19,9 +19,6 @@ MPU6050 accelgyro;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
-double angleYZ = 0;
-double angleXZ = 0;
-
 enum Ascale {
   AFS_2G = 0,
   AFS_4G,
@@ -46,8 +43,8 @@ double G_R[4]={-131,-65.5,-32.8,-16.4};
 
 //Angulos
 float Acc[2];
-float Gy[2];
-float Angle[2];
+float Angle_compl[2];
+
 
 
 //Configuracion Acelerometro // Opciones 2G, 4G   8G   o  16G
@@ -95,6 +92,7 @@ void setup() {
     Serial.print("\n");
     */
     Serial.begin(115200);
+    //Serial.println("Inicio");
     timer = micros(); //Para calcular dt   
 }
 
@@ -132,21 +130,20 @@ void getMeasurements(){
 
 void getAngles(){
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      //Se calculan los angulos Y, X respectivamente.
-      Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      //Se calculan los angulos X, Y respectivamente.
       Acc[0] = atan((ay/A_R[Ascale])/sqrt(pow((ax/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
-     
-     //Aplicar el Filtro Complementario
+      Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      //Aplicar el Filtro Complementario
 
-     double dt=(double)(micros()-timer)/1000000;
-     timer = micros();
+      double dt=(double)(micros()-timer)/1000000;
+      timer = micros();
       
-     Angle[0] = 0.98 *(Angle[0]+gx/G_R[Gscale]*dt) + 0.02*Acc[0];
-     Angle[1] = 0.98 *(Angle[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
+      Angle_compl[0] = 0.98 *(Angle_compl[0]+gx/G_R[Gscale]*dt) + 0.02*Acc[0];
+      Angle_compl[1] = 0.98 *(Angle_compl[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
     
      //Mostrar los valores por consola
-     Serial.print(Angle[0]); Serial.print(" ");
-     Serial.println(Angle[1]);
+     Serial.print(Angle_compl[0]); Serial.print(" ");
+     Serial.println(Angle_compl[1]);
 }
 
 
