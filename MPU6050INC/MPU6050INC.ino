@@ -109,6 +109,7 @@ void loop() {
     // read raw accel/gyro measurements from device
     getAngles();
     //getMeasurements();
+    //delay(200);
 }
 
 void getMeasurements(){
@@ -130,16 +131,33 @@ void getMeasurements(){
 
 void getAngles(){
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      //Se calculan los angulos X, Y respectivamente.
-      Acc[0] = atan((ay/A_R[Ascale])/sqrt(pow((ax/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
-      Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+
+      double Ax,Ay,Az;
+      double Gy,Gx,Gz;
+      Ax = -1*ax/A_R[Ascale];
+      Ay = -1*ay/A_R[Ascale];
+      Az = az/A_R[Ascale];
+      Gx = -1*gx/G_R[Gscale];
+      Gy = -1*gy/G_R[Gscale];
+      Gz = gz/G_R[Gscale];
+      
+      //Se calculan los angulos X, Y respectivamente con la IMU horizontal.
+      //Acc[0] = atan((ay/A_R[Ascale])/sqrt(pow((ax/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      //Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      
+      //Se calculan los angulos con la IMU vertical.
+      Acc[0] = atan(Az/sqrt(pow(Ax,2) + pow(Ay,2)))*RAD_TO_DEG;
+      Acc[1] = atan(Ax/sqrt(pow(Az,2) + pow(Ay,2)))*RAD_TO_DEG;
       //Aplicar el Filtro Complementario
 
       double dt=(double)(micros()-timer)/1000000;
       timer = micros();
+
+      //Angle_compl[1] = 0.98 *(Angle_compl[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
       
       Angle_compl[0] = 0.98 *(Angle_compl[0]+gx/G_R[Gscale]*dt) + 0.02*Acc[0];
-      Angle_compl[1] = 0.98 *(Angle_compl[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
+      Angle_compl[1] = 0.98 *(Angle_compl[1]+gz/G_R[Gscale]*dt) + 0.02*Acc[1];
+      
     
      //Mostrar los valores por consola
      Serial.print(Angle_compl[0]); Serial.print(" ");
