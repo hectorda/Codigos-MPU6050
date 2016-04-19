@@ -37,6 +37,7 @@ Hardware setup:
 #define INT_STATUS 0x3A //Registro de Estado de Interrupcion
 #define SMPRT_DIV 0x19 //Registro Sample Rate Divider
 #define FIFO_EN 0x23 //Registro FIFO Enable para Definir que medidas se obtendran
+#define MPU6050_CLOCK_PLL_XGYRO 0x01
 
 //Conversion de radianes a grados 180/PI
 #define RAD_A_DEG = 57.295779
@@ -46,6 +47,11 @@ double AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 double A_R[4]={-16384,-8192,-4096,-2048};
 double G_R[4]={-131,-65.5,-32.8,-16.4};
 
+//Angulos
+float Acc[2];
+float Angle_compl[2];
+
+uint32_t timer;
 
 // Set initial input parameters
 enum Ascale {
@@ -67,34 +73,35 @@ enum Gscale {
 int Ascale=AFS_2G;      // Rango  ±2g, ±4g, ±8g o ±16g
 
 //Configuracion Giroscopio // Set the scale below either 0, 1 ,2  o 3
-int Gscale=GFS_250DPS; 
+int Gscale=GFS_250DPS;
 #define DLPF_CFG 0 //Configurar Low Pass Filter interno
 #define SMPLRT_DIV 0 //Divisor de la frecuencia de salida
 #define TEMP_FIFO_EN 0 //Desactivar FIFO TEMP
 
-
 void setup() {
-  Wire.begin();  
+  Wire.begin();
+  Wire.setClock(400);
   Serial.begin(115200);
-  initMPU6050();
-  Serial.flush();  
+  inicializarMPU6050();
+  timer = micros(); //Para calcular dt   
 }
 
 void loop(){
 //   if(readByte(MPU6050, INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
   //  if(leerRegistro(INT_STATUS)){
-      leerMuestras();
-      imprimir();
+      
+      imprimirAngulos();
+      //imprimirMuestras();
 //     }    
 }
 
-void initMPU6050(){// Inicializa la configuracion de MPU6050
+void inicializarMPU6050(){// Inicializa la configuracion de MPU6050
     escribirRegistro(PWR_MGMT_1, 0);  // Se despierta el MPU-6050
     escribirRegistro(CONFIG, DLPF_CFG);//Configurar Filtro
     escribirRegistro(SMPRT_DIV, SMPLRT_DIV);//Configurar Sample Rate
     escribirRegistro(FIFO_EN, TEMP_FIFO_EN<<7);//Desactivar FIFO de Temperatura
-    escribirRegistro(ACCEL_CONFIG, Ascale<<3); //Se escribe en el registro ACCEL_CONFIG con su corrimiento de 3 bits respectivo
-    escribirRegistro(GYRO_CONFIG, Gscale<<3);   //Se escribe en el registro GYRO_CONFIG con su corrimiento de 3 bits respectivo
+    setFullScaleAccelRange();
+    setFullScaleGyroRange();   
 }
 
 void leerAcelerometro(){
@@ -115,13 +122,25 @@ void leerGyroscopio(){
       Wire.requestFrom(MPU6050,6,true);//A partir del 0x43, se piden 6 registros
       GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
       GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-      GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L) 
-
+      GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 }
 
 void leerMuestras(){
-    /*  
-    //------Lectura Acelerometro---------
+
+    Wire.beginTransmission(MPU6050);      
+      Wire.write(ACCEL_XOUT_H); // starting with register 0x3B (ACCEL_XOUT_H)
+      Wire.endTransmission(false);
+      Wire.requestFrom(MPU6050,6,true); //A partir del 0x3B, se piden 6 registros      
+      AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
+      AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+      AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+      double a= Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L);
+      GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+      GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+      GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L) 
+    /*
+     * 
+     //------Lectura Acelerometro---------
     AcX=leerRegistro(ACCEL_XOUT_H)<<8 | leerRegistro(ACCEL_XOUT_L);
     AcY=leerRegistro(ACCEL_YOUT_H)<<8 | leerRegistro(ACCEL_YOUT_L);
     AcZ=leerRegistro(ACCEL_ZOUT_H)<<8 | leerRegistro(ACCEL_ZOUT_L);
@@ -129,12 +148,43 @@ void leerMuestras(){
     GyX=leerRegistro(GYRO_XOUT_H)<<8 | leerRegistro(GYRO_XOUT_L);
     GyY=leerRegistro(GYRO_YOUT_H)<<8 | leerRegistro(GYRO_YOUT_L);
     GyZ=leerRegistro(GYRO_ZOUT_H)<<8 | leerRegistro(GYRO_ZOUT_L);
+    
+    //leerAcelerometro();
+    //leerGyroscopio();
     */
-    leerAcelerometro();
-    leerGyroscopio();
   }
 
-void imprimir(){    
+
+void leerAngulos(){
+      double Ax,Ay,Az;
+      double Gy,Gx,Gz;
+      Ax = -1*AcX/A_R[Ascale];
+      Ay = -1*AcY/A_R[Ascale];
+      Az = AcZ/A_R[Ascale];
+      Gx = -1*GyX/G_R[Gscale];
+      Gy = -1*GyY/G_R[Gscale];
+      Gz = GyZ/G_R[Gscale];
+      
+      //Se calculan los angulos X, Y respectivamente con la IMU horizontal.
+      //Acc[0] = atan((ay/A_R[Ascale])/sqrt(pow((ax/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      //Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
+      
+      //Se calculan los angulos con la IMU vertical.
+      Acc[0] = atan(Az/sqrt(pow(Ax,2) + pow(Ay,2)))*RAD_TO_DEG;
+      Acc[1] = atan(Ax/sqrt(pow(Az,2) + pow(Ay,2)))*RAD_TO_DEG;
+      //Aplicar el Filtro Complementario
+
+      double dt=(double)(micros()-timer)/1000000;
+      timer = micros();
+
+      //Angle_compl[1] = 0.98 *(Angle_compl[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
+      
+      Angle_compl[0] = 0.98 *(Angle_compl[0]+GyX/G_R[Gscale]*dt) + 0.02*Acc[0];
+      Angle_compl[1] = 0.98 *(Angle_compl[1]+GyZ/G_R[Gscale]*dt) + 0.02*Acc[1];
+}
+
+void imprimirMuestras(){    
+    leerMuestras();
     //Imprimir Valores de Config
     /*
     Serial.print(" Escala Ac:");Serial.print(leerRegistro(ACCEL_CONFIG)>>3);
@@ -162,6 +212,15 @@ void imprimir(){
     delay(0);
 }
 
+void imprimirAngulos(){
+    leerMuestras();
+    leerAngulos();
+  //Mostrar los valores por consola
+     Serial.print(Angle_compl[0]); Serial.print(" ");
+     Serial.println(Angle_compl[1]);
+  
+  }
+
 byte leerRegistro(byte Registro){// Leer el Byte de un Registro de 8 bits
   Wire.beginTransmission(MPU6050);    //Se inicializa el Tx buffer
   Wire.write(Registro);               //Se pone el registro en el buffer
@@ -180,7 +239,7 @@ void escribirRegistro(byte Registro, byte Dato) {
 }
 
 
-  uint8_t readByte(uint8_t address, uint8_t subAddress)
+  uint8_t leerByte(uint8_t address, uint8_t subAddress)
 {
 	uint8_t data; // `data` will store the register data	 
 	Wire.beginTransmission(address);         // Initialize the Tx buffer
@@ -190,6 +249,79 @@ void escribirRegistro(byte Registro, byte Dato) {
 	data = Wire.read();                      // Fill Rx buffer with result
 	return data;                             // Return data read from slave register
 }
+
+void cambiarRangos(char key,int value)
+{
+  if (key == 'g'){
+    switch (value) {
+      case 0:
+        Gscale=GFS_250DPS;
+        setFullScaleGyroRange();
+        Serial.print("RangoGiroscopio: 250dps");
+        break;
+      case 1:
+        Gscale=GFS_500DPS;
+        setFullScaleGyroRange();
+        Serial.print("RangoGiroscopio: 500dps");
+        break;
+      case 2:
+        Gscale=GFS_1000DPS;
+        setFullScaleGyroRange();
+        Serial.print("RangoGiroscopio: 1000dps");
+        break;
+      case 3:
+        Gscale=GFS_2000DPS;
+        setFullScaleGyroRange();
+        Serial.print("RangoGiroscopio: 2000dps");
+        break;
+      
+      default: 
+        // if nothing else matches, do the default
+        // default is optional
+      break;
+    }
+  }
+  if (key == 'a'){
+    switch (value) {
+      case 0:
+        Ascale=AFS_2G;
+        setFullScaleAccelRange();
+        Serial.print("RangoAcelerometro: 2G");
+        break;
+      case 1:
+        Ascale=AFS_4G;
+        setFullScaleAccelRange();
+        Serial.print("RangoAcelerometro: 4G");
+        break;
+      case 2:
+        Ascale=AFS_8G;
+        setFullScaleAccelRange();
+        Serial.print("RangoAcelerometro: 8G");
+        break;
+      case 3:
+        Ascale=AFS_16G;
+        setFullScaleAccelRange();
+        Serial.print("RangoAcelerometro: 16G");
+        break;
+      
+      default: 
+        // if nothing else matches, do the default
+        // default is optional
+      break;
+    }
+  }  
+  return;
+}
+
+void setFullScaleAccelRange(){
+ escribirRegistro(ACCEL_CONFIG, Ascale<<3); //Se escribe en el registro ACCEL_CONFIG con su corrimiento de 3 bits respectivo
+}
+
+void setFullScaleGyroRange(){
+  escribirRegistro(GYRO_CONFIG, Gscale<<3);   //Se escribe en el registro GYRO_CONFIG con su corrimiento de 3 bits respectivo
+}
+
+
 
 
 

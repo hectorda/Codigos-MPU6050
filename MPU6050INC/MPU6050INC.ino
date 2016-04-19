@@ -13,8 +13,8 @@ Hardware setup:
 #include "MPU6050.h"
 #include <math.h>
 
-MPU6050 accelgyro;
-//MPU6050 accelgyro(0x69); // <-- use for AD0 high
+MPU6050 MPU;
+//MPU6050 MPU(0x69); // <-- use for AD0 high
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
@@ -58,42 +58,41 @@ bool blinkState = false;
 
 void setup() {
     
-    // initialize device
-    //Serial.println("Initializing I2C devices...");
-    accelgyro.initialize();
-
+    MPU.initialize();
+    
     // verify connection
     //Serial.println("Testing device connections...");
-    //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-    accelgyro.setFullScaleGyroRange(Gscale);
-    accelgyro.setFullScaleAccelRange(Ascale);
+    //Serial.println(MPU.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+    MPU.setFullScaleGyroRange(Gscale);
+    MPU.setFullScaleAccelRange(Ascale);
+    MPU.setRate(0);
     // use the code below to change accel/gyro offset values
     /*
     Serial.println("Updating internal sensor offsets...");
     // -76  -2359 1688  0 0 0
-    Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
+    Serial.print(MPU.getXAccelOffset()); Serial.print("\t"); // -76
+    Serial.print(MPU.getYAccelOffset()); Serial.print("\t"); // -2359
+    Serial.print(MPU.getZAccelOffset()); Serial.print("\t"); // 1688
+    Serial.print(MPU.getXGyroOffset()); Serial.print("\t"); // 0
+    Serial.print(MPU.getYGyroOffset()); Serial.print("\t"); // 0
+    Serial.print(MPU.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
-     accelgyro.setXGyroOffset(220);
-    accelgyro.setYGyroOffset(76);
-    accelgyro.setZGyroOffset(-85);
+     MPU.setXGyroOffset(220);
+    MPU.setYGyroOffset(76);
+    MPU.setZGyroOffset(-85);
     */
    
-    /*Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
+    /*Serial.print(MPU.getXAccelOffset()); Serial.print("\t"); // -76
+    Serial.print(MPU.getYAccelOffset()); Serial.print("\t"); // -2359
+    Serial.print(MPU.getZAccelOffset()); Serial.print("\t"); // 1688
+    Serial.print(MPU.getXGyroOffset()); Serial.print("\t"); // 0
+    Serial.print(MPU.getYGyroOffset()); Serial.print("\t"); // 0
+    Serial.print(MPU.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
     */
     Serial.begin(115200);
     //Serial.println("Inicio");
-    timer = micros(); //Para calcular dt   
+    timer = micros(); //Para calcular dt
 }
 
 void loop() {
@@ -106,31 +105,37 @@ void loop() {
           //Serial.print("Cambios");
           //delay(1000);
     }
-    // read raw accel/gyro measurements from device
-    getAngles();
-    //getMeasurements();
-    //delay(200);
+    
+      //if(MPU.getIntDataReadyEnabled())
+      //  Serial.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+      //getAngles();
+      // read raw accel/gyro measurements from device
+      getMeasurements();
+      //Serial.println(MPU.getRate());
+      //delay(200);
+      //Serial.println(MPU.getTemperature()/340.00+36.53);
+      //blink LED to indicate activity
 }
 
 void getMeasurements(){
-     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+     MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     
     // these methods (and a few others) are also available
-    //accelgyro.getAcceleration(&ax, &ay, &az);
-    //accelgyro.getRotation(&gx, &gy, &gz);
+    //MPU.getAcceleration(&ax, &ay, &az);
+    //MPU.getRotation(&gx, &gy, &gz);
     
-    //Serial.print("Gyro range");Serial.println(accelgyro.getFullScaleGyroRange());
+    //Serial.print("Gyro range");Serial.println(MPU.getFullScaleGyroRange());
    
-    Serial.print(ax/A_R[Ascale]); Serial.print(" ");
-    Serial.print(ay/A_R[Ascale]); Serial.print(" ");
-    Serial.print(az/A_R[Ascale]); Serial.print(" ");
-    Serial.print(gx/G_R[Gscale]); Serial.print(" ");
-    Serial.print(gy/G_R[Gscale]); Serial.print(" ");
-    Serial.println(gz/G_R[Gscale]);
+    Serial.print(ax); Serial.print(" ");
+    Serial.print(ay); Serial.print(" ");
+    Serial.print(az); Serial.print(" ");
+    Serial.print(gx); Serial.print(" ");
+    Serial.print(gy); Serial.print(" ");
+    Serial.println(gz);
 }
 
 void getAngles(){
-      accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+      MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
       double Ax,Ay,Az;
       double Gy,Gx,Gz;
@@ -171,22 +176,22 @@ void changeranges(char key,int value)
     switch (value) {
       case 0:
         Gscale=GFS_250DPS;
-        accelgyro.setFullScaleGyroRange(Gscale);
+        MPU.setFullScaleGyroRange(Gscale);
         Serial.print("RangoGiroscopio: 250dps");
         break;
       case 1:
         Gscale=GFS_500DPS;
-        accelgyro.setFullScaleGyroRange(Gscale);
+        MPU.setFullScaleGyroRange(Gscale);
         Serial.print("RangoGiroscopio: 500dps");
         break;
       case 2:
         Gscale=GFS_1000DPS;
-        accelgyro.setFullScaleGyroRange(Gscale);
+        MPU.setFullScaleGyroRange(Gscale);
         Serial.print("RangoGiroscopio: 1000dps");
         break;
       case 3:
         Gscale=GFS_2000DPS;
-        accelgyro.setFullScaleGyroRange(Gscale);
+        MPU.setFullScaleGyroRange(Gscale);
         Serial.print("RangoGiroscopio: 2000dps");
         break;
       
@@ -200,22 +205,22 @@ void changeranges(char key,int value)
     switch (value) {
       case 0:
         Ascale=AFS_2G;
-        accelgyro.setFullScaleAccelRange(Ascale);
+        MPU.setFullScaleAccelRange(Ascale);
         Serial.print("RangoAcelerometro: 2G");
         break;
       case 1:
         Ascale=AFS_4G;
-        accelgyro.setFullScaleAccelRange(Ascale);
+        MPU.setFullScaleAccelRange(Ascale);
         Serial.print("RangoAcelerometro: 4G");
         break;
       case 2:
         Ascale=AFS_8G;
-        accelgyro.setFullScaleAccelRange(Ascale);
+        MPU.setFullScaleAccelRange(Ascale);
         Serial.print("RangoAcelerometro: 8G");
         break;
       case 3:
         Ascale=AFS_16G;
-        accelgyro.setFullScaleAccelRange(Ascale);
+        MPU.setFullScaleAccelRange(Ascale);
         Serial.print("RangoAcelerometro: 16G");
         break;
       
