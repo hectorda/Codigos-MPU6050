@@ -106,15 +106,9 @@ void loop() {
           //delay(1000);
     }
     
-      //if(MPU.getIntDataReadyEnabled())
-      //  Serial.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-      //getAngles();
-      // read raw accel/gyro measurements from device
-      getMeasurements();
-      //Serial.println(MPU.getRate());
-      //delay(200);
-      //Serial.println(MPU.getTemperature()/340.00+36.53);
-      //blink LED to indicate activity
+
+      getAngles();
+      //getMeasurements();
 }
 
 void getMeasurements(){
@@ -126,12 +120,12 @@ void getMeasurements(){
     
     //Serial.print("Gyro range");Serial.println(MPU.getFullScaleGyroRange());
    
-    Serial.print(ax); Serial.print(" ");
-    Serial.print(ay); Serial.print(" ");
-    Serial.print(az); Serial.print(" ");
-    Serial.print(gx); Serial.print(" ");
-    Serial.print(gy); Serial.print(" ");
-    Serial.println(gz);
+    Serial.print(ax/A_R[Ascale]); Serial.print(" ");
+    Serial.print(ay/A_R[Ascale]); Serial.print(" ");
+    Serial.print(az/A_R[Ascale]); Serial.print(" ");
+    Serial.print(gx/A_R[Ascale]); Serial.print(" ");
+    Serial.print(gy/A_R[Ascale]); Serial.print(" ");
+    Serial.println(gz/A_R[Ascale]);
 }
 
 void getAngles(){
