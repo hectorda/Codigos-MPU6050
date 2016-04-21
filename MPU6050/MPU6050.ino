@@ -75,7 +75,7 @@ int Ascale=AFS_2G;      // Rango  ±2g, ±4g, ±8g o ±16g
 //Configuracion Giroscopio // Set the scale below either 0, 1 ,2  o 3
 int Gscale=GFS_250DPS;
 #define DLPF_CFG 0 //Configurar Low Pass Filter interno
-#define SMPLRT_DIV 0 //Divisor de la frecuencia de salida
+#define SMPLRT_DIV 39 //Divisor de la frecuencia de salida
 #define TEMP_FIFO_EN 0 //Desactivar FIFO TEMP
 
 void setup() {
@@ -87,19 +87,23 @@ void setup() {
 }
 
 void loop(){
-//   if(readByte(MPU6050, INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
-  //  if(leerRegistro(INT_STATUS)){
+
+    if (Serial.available()){
+          char key = Serial.read();
+          char value= Serial.parseInt();
+          cambiarRangos(key,value);
+          //Serial.print("Cambios");
+          //delay(1000);
+    }
+    //Serial.print("sin 0x01 ");Serial.println(leerRegistro(INT_STATUS));
+    //Serial.print("con 0x01 ");Serial.println(leerRegistro(INT_STATUS) & 0x01);
+    if(leerRegistro(INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
+    //  if(leerRegistro(INT_STATUS)){
             //Escuchando para cambiar :)
-       if (Serial.available()){
-            char key = Serial.read();
-            char value= Serial.parseInt();
-            cambiarRangos(key,value);
-            //Serial.print("Cambios");
-            //delay(1000);
-      }
+   
       imprimirAngulos();
       //imprimirMuestras();
-//     }    
+    }    
 }
 
 void inicializarMPU6050(){// Inicializa la configuracion de MPU6050

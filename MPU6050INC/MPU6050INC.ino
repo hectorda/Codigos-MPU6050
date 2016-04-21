@@ -65,7 +65,7 @@ void setup() {
     //Serial.println(MPU.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     MPU.setFullScaleGyroRange(Gscale);
     MPU.setFullScaleAccelRange(Ascale);
-    MPU.setRate(0);
+    MPU.setRate(39); // Gyroscope Output Rate / (1 + SMPLRT_DIV) = Sample Rate
     // use the code below to change accel/gyro offset values
     /*
     Serial.println("Updating internal sensor offsets...");
@@ -105,13 +105,15 @@ void loop() {
           //Serial.print("Cambios");
           //delay(1000);
     }
-    
 
-      getAngles();
-      //getMeasurements();
+    if(MPU.getIntStatus()){//Se ve si hay interrupcion
+      //obtenerDatos();
+      obtenerAngulos();
+    }
+      
 }
 
-void getMeasurements(){
+void obtenerDatos(){
      MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     
     // these methods (and a few others) are also available
@@ -128,7 +130,7 @@ void getMeasurements(){
     Serial.println(gz/A_R[Ascale]);
 }
 
-void getAngles(){
+void obtenerAngulos(){
       MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
       double Ax,Ay,Az;
