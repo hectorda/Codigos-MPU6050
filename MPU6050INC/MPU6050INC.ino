@@ -108,14 +108,14 @@ void loop() {
           //Serial.print("Cambios");
           //delay(1000);
     }
-
-    if(MPU.getIntStatus()){//Se ve si hay interrupcion
-      //obtenerDatos();
-      //Serial.println(MPU.getRate());
-      //Serial.println(MPU.getDLPFMode());
-      obtenerAngulos();
+    else{
+      if(MPU.getIntStatus()){//Se ve si hay interrupcion
+        //obtenerDatos();
+        //Serial.println(MPU.getRate());
+        //Serial.println(MPU.getDLPFMode());
+        obtenerAngulos();
+      }
     }
-      
 }
 
 void obtenerDatos(){
