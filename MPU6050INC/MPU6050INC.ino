@@ -51,7 +51,9 @@ float Angle_compl[2];
 int Ascale=AFS_2G;
 
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
-int Gscale=GFS_250DPS; 
+int Gscale=GFS_250DPS;
+
+int rate=79;
 
 #define LED_PIN 13
 bool blinkState = false;
@@ -65,7 +67,8 @@ void setup() {
     //Serial.println(MPU.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     MPU.setFullScaleGyroRange(Gscale);
     MPU.setFullScaleAccelRange(Ascale);
-    MPU.setRate(39); // Gyroscope Output Rate / (1 + SMPLRT_DIV) = Sample Rate
+    MPU.setRate(rate); // Gyroscope Output Rate / (1 + SMPLRT_DIV) = Sample Rate
+    MPU.setDLPFMode(0);
     // use the code below to change accel/gyro offset values
     /*
     Serial.println("Updating internal sensor offsets...");
@@ -108,6 +111,8 @@ void loop() {
 
     if(MPU.getIntStatus()){//Se ve si hay interrupcion
       //obtenerDatos();
+      //Serial.println(MPU.getRate());
+      //Serial.println(MPU.getDLPFMode());
       obtenerAngulos();
     }
       
@@ -225,7 +230,14 @@ void changeranges(char key,int value)
         // default is optional
       break;
     }
-  }  
+  }
+  if (key == 's'){
+    rate=value;
+    MPU.setRate(rate);
+  }
+  if (key == 'l'){
+    MPU.setDLPFMode(value);
+  }
   return;
 }
 
