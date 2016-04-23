@@ -54,7 +54,7 @@ int Ascale=AFS_2G;
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
 int Gscale=GFS_250DPS;
 
-int rate=79;
+int rate=39;
 
 #define LED_PIN 13
 bool blinkState = false;
@@ -103,27 +103,28 @@ void setup(){
 }
 
 void loop() {  
-  //Escuchando para cambiar :)
-       if (Serial.available()){
-            char key = Serial.read();
-            char value= Serial.parseInt();
-            changeranges(key,value);
-            //Serial.print("Cambios");
-            //delay(1000);
+  //Escuchando para cambiar :)  
+     if (Serial.available()){
+          char key = Serial.read();
+          char value= Serial.parseInt();
+          changeranges(key,value);
+          //Serial.print("Cambios");
+          //delay(1000);
+    }
+    else{
+      if(MPU.getIntStatus()){//Se ve si hay interrupcion
+        //prints time since program started
+        //obtenerDatos();
+        //MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        //Serial.println("1");
+        //Serial.println(MPU.getRate());
+        //Serial.println(MPU.getDLPFMode());
+        obtenerAngulos();
       }
-      else{
-        if(MPU.getIntStatus()){//Se ve si hay interrupcion
-          //prints time since program started
-          //obtenerDatos();
-          //MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-          //Serial.println("1");
-          //Serial.println(MPU.getRate());
-          //Serial.println(MPU.getDLPFMode());
-          obtenerAngulos();
-        }
-      }
+    }
+      
   
-  /* 
+  /*
     if(time<1000){
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
         MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
@@ -132,11 +133,14 @@ void loop() {
       }      
     }
     else{
-        Serial.print("Cuentas");Serial.println(cuentas);
-        Serial.print("time");Serial.println(time);
+        Serial.print("Sample Rate: ");Serial.println(8000/(1+rate));
+        Serial.print("Muestras: ");Serial.println(cuentas);
+        Serial.print("Tiempo: ");Serial.println(time);
+        
         delay(100000);
     }
     */
+    
 }
 
 void obtenerDatos(){
