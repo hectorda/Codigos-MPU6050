@@ -19,6 +19,7 @@ MPU6050 MPU;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
+unsigned long start, finished, elapsed;
 enum Ascale {
   AFS_2G = 0,
   AFS_4G,
@@ -58,7 +59,10 @@ int rate=79;
 #define LED_PIN 13
 bool blinkState = false;
 
-void setup() {
+unsigned long time;//Para medir las cuentas internas
+int cuentas=0;
+
+void setup(){
     
     MPU.initialize();
     
@@ -98,24 +102,41 @@ void setup() {
     timer = micros(); //Para calcular dt
 }
 
-void loop() {
-
-      //Escuchando para cambiar :)
-     if (Serial.available()){
-          char key = Serial.read();
-          char value= Serial.parseInt();
-          changeranges(key,value);
-          //Serial.print("Cambios");
-          //delay(1000);
+void loop() {  
+  //Escuchando para cambiar :)
+       if (Serial.available()){
+            char key = Serial.read();
+            char value= Serial.parseInt();
+            changeranges(key,value);
+            //Serial.print("Cambios");
+            //delay(1000);
+      }
+      else{
+        if(MPU.getIntStatus()){//Se ve si hay interrupcion
+          //prints time since program started
+          //obtenerDatos();
+          //MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+          //Serial.println("1");
+          //Serial.println(MPU.getRate());
+          //Serial.println(MPU.getDLPFMode());
+          obtenerAngulos();
+        }
+      }
+  
+  /* 
+    if(time<1000){
+      if(MPU.getIntStatus()){//Se ve si hay interrupcion
+        MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        time = millis();
+        cuentas++;
+      }      
     }
     else{
-      if(MPU.getIntStatus()){//Se ve si hay interrupcion
-        //obtenerDatos();
-        //Serial.println(MPU.getRate());
-        //Serial.println(MPU.getDLPFMode());
-        obtenerAngulos();
-      }
+        Serial.print("Cuentas");Serial.println(cuentas);
+        Serial.print("time");Serial.println(time);
+        delay(100000);
     }
+    */
 }
 
 void obtenerDatos(){
