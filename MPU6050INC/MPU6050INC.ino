@@ -155,9 +155,9 @@ void obtenerDatos(){
     Serial.print(ax/A_R[Ascale]); Serial.print(" ");
     Serial.print(ay/A_R[Ascale]); Serial.print(" ");
     Serial.print(az/A_R[Ascale]); Serial.print(" ");
-    Serial.print(gx/A_R[Ascale]); Serial.print(" ");
-    Serial.print(gy/A_R[Ascale]); Serial.print(" ");
-    Serial.println(gz/A_R[Ascale]);
+    Serial.print(gx/G_R[Gscale]); Serial.print(" ");
+    Serial.print(gy/G_R[Gscale]); Serial.print(" ");
+    Serial.println(gz/G_R[Gscale]);
 }
 
 void obtenerAngulos(){
