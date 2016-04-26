@@ -114,12 +114,12 @@ void loop() {
     else{
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
         //prints time since program started
-        //obtenerDatos();
+        obtenerDatos();
         //MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
         //Serial.println("1");
         //Serial.println(MPU.getRate());
         //Serial.println(MPU.getDLPFMode());
-        obtenerAngulos();
+        //obtenerAngulos();
       }
     }
       
