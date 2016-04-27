@@ -38,8 +38,8 @@ uint32_t timer;
 //Conversion de radianes a grados 180/PI
 #define RAD_A_DEG = 57.295779
 
-double A_R[4]={-16384,-8192,-4096,-2048};
-double G_R[4]={-131,-65.5,-32.8,-16.4};
+double A_R[4]={16384,8192,4096,2048};
+double G_R[4]={131,65.5,32.8,16.4};
 
 
 /*-------------Configuracion inicial del MPU6050--------------------*/
