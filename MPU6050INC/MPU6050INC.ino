@@ -7,7 +7,6 @@ Hardware setup:
  GND ---------------------- GND
 */
 
-
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "MPU6050.h"
@@ -42,22 +41,21 @@ uint32_t timer;
 double A_R[4]={-16384,-8192,-4096,-2048};
 double G_R[4]={-131,-65.5,-32.8,-16.4};
 
-//Angulos
-float Acc[2];
-float Angle_compl[2];
 
-
-
+/*-------------Configuracion inicial del MPU6050--------------------*/
 //Configuracion Acelerometro // Opciones 2G, 4G   8G   o  16G
 int Ascale=AFS_2G;
 
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
 int Gscale=GFS_250DPS;
+//Frecuencia de Muestreo
+int rate=79;
+//Filtro Pasa-Bajo Digital
+int dlpf=0;
 
-int rate=39;
-
-#define LED_PIN 13
-bool blinkState = false;
+//Angulos
+float Acc[2];
+float Angle_compl[2];
 
 unsigned long time;//Para medir las cuentas internas
 int cuentas=0;
@@ -72,8 +70,12 @@ void setup(){
     MPU.setFullScaleGyroRange(Gscale);
     MPU.setFullScaleAccelRange(Ascale);
     MPU.setRate(rate); // Gyroscope Output Rate / (1 + SMPLRT_DIV) = Sample Rate
-    MPU.setDLPFMode(0);
+    MPU.setDLPFMode(dlpf);
     // use the code below to change accel/gyro offset values
+
+    
+    Serial.begin(115200);
+
     /*
     Serial.println("Updating internal sensor offsets...");
     // -76  -2359 1688  0 0 0
@@ -84,10 +86,11 @@ void setup(){
     Serial.print(MPU.getYGyroOffset()); Serial.print("\t"); // 0
     Serial.print(MPU.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
-     MPU.setXGyroOffset(220);
+    MPU.setXGyroOffset(220);
     MPU.setYGyroOffset(76);
     MPU.setZGyroOffset(-85);
     */
+    
    
     /*Serial.print(MPU.getXAccelOffset()); Serial.print("\t"); // -76
     Serial.print(MPU.getYAccelOffset()); Serial.print("\t"); // -2359
@@ -96,13 +99,13 @@ void setup(){
     Serial.print(MPU.getYGyroOffset()); Serial.print("\t"); // 0
     Serial.print(MPU.getZGyroOffset()); Serial.print("\t"); // 0
     Serial.print("\n");
-    */
-    Serial.begin(115200);
     //Serial.println("Inicio");
-    timer = micros(); //Para calcular dt
+    //timer = micros(); //Para calcular dt
+    */
 }
 
-void loop() {  
+void loop() {
+
   //Escuchando para cambiar :)  
      if (Serial.available()){
           char key = Serial.read();
@@ -122,12 +125,13 @@ void loop() {
         //obtenerAngulos();
       }
     }
-      
-  
-  /*
-    if(time<1000){
+    
+    /*
+    //Para probar las muestras dentro de arduino
+    if(time<3000){
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
-        MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        //MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        obtenerDatos();
         time = millis();
         cuentas++;
       }      
@@ -139,8 +143,7 @@ void loop() {
         
         delay(100000);
     }
-    */
-    
+    */    
 }
 
 void obtenerDatos(){
@@ -149,9 +152,7 @@ void obtenerDatos(){
     // these methods (and a few others) are also available
     //MPU.getAcceleration(&ax, &ay, &az);
     //MPU.getRotation(&gx, &gy, &gz);
-    
-    //Serial.print("Gyro range");Serial.println(MPU.getFullScaleGyroRange());
-   
+       
     Serial.print(ax/A_R[Ascale]); Serial.print(" ");
     Serial.print(ay/A_R[Ascale]); Serial.print(" ");
     Serial.print(az/A_R[Ascale]); Serial.print(" ");
@@ -195,7 +196,6 @@ void obtenerAngulos(){
      Serial.println(Angle_compl[1]);
 }
 
-
 void changeranges(char key,int value)
 {
   if (key == 'g'){
@@ -203,22 +203,22 @@ void changeranges(char key,int value)
       case 0:
         Gscale=GFS_250DPS;
         MPU.setFullScaleGyroRange(Gscale);
-        Serial.print("RangoGiroscopio: 250dps");
+        //Serial.print("RangoGiroscopio: 250dps");
         break;
       case 1:
         Gscale=GFS_500DPS;
         MPU.setFullScaleGyroRange(Gscale);
-        Serial.print("RangoGiroscopio: 500dps");
+        //Serial.print("RangoGiroscopio: 500dps");
         break;
       case 2:
         Gscale=GFS_1000DPS;
         MPU.setFullScaleGyroRange(Gscale);
-        Serial.print("RangoGiroscopio: 1000dps");
+        //Serial.print("RangoGiroscopio: 1000dps");
         break;
       case 3:
         Gscale=GFS_2000DPS;
         MPU.setFullScaleGyroRange(Gscale);
-        Serial.print("RangoGiroscopio: 2000dps");
+        //Serial.print("RangoGiroscopio: 2000dps");
         break;
       
       default: 
@@ -232,22 +232,22 @@ void changeranges(char key,int value)
       case 0:
         Ascale=AFS_2G;
         MPU.setFullScaleAccelRange(Ascale);
-        Serial.print("RangoAcelerometro: 2G");
+        //Serial.print("RangoAcelerometro: 2G");
         break;
       case 1:
         Ascale=AFS_4G;
         MPU.setFullScaleAccelRange(Ascale);
-        Serial.print("RangoAcelerometro: 4G");
+        //Serial.print("RangoAcelerometro: 4G");
         break;
       case 2:
         Ascale=AFS_8G;
         MPU.setFullScaleAccelRange(Ascale);
-        Serial.print("RangoAcelerometro: 8G");
+        //Serial.print("RangoAcelerometro: 8G");
         break;
       case 3:
         Ascale=AFS_16G;
         MPU.setFullScaleAccelRange(Ascale);
-        Serial.print("RangoAcelerometro: 16G");
+        //Serial.print("RangoAcelerometro: 16G");
         break;
       
       default: 
@@ -261,7 +261,8 @@ void changeranges(char key,int value)
     MPU.setRate(rate);
   }
   if (key == 'l'){
-    MPU.setDLPFMode(value);
+    dlpf=value;
+    MPU.setDLPFMode(dlpf);
   }
   return;
 }
