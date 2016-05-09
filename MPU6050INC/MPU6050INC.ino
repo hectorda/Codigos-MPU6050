@@ -35,9 +35,6 @@ enum Gscale {
 
 uint32_t timer;
 
-//Conversion de radianes a grados 180/PI
-#define RAD_A_DEG = 57.295779
-
 double A_R[4]={16384,8192,4096,2048};
 double G_R[4]={131,65.5,32.8,16.4};
 
@@ -49,13 +46,9 @@ int Ascale=AFS_2G;
 //Configuracion Giroscopio // Set the scale below either 250, 500 ,1000  o 2000
 int Gscale=GFS_250DPS;
 //Frecuencia de Muestreo
-int rate=79;
+int rate=39; //39 para 200 Hz
 //Filtro Pasa-Bajo Digital
 int dlpf=0;
-
-//Angulos
-float Acc[2];
-float Angle_compl[2];
 
 unsigned long time;//Para medir las cuentas internas
 int cuentas=0;
@@ -64,19 +57,17 @@ void setup(){
     
     MPU.initialize();
     
-    // verify connection
-    //Serial.println("Testing device connections...");
-    //Serial.println(MPU.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     MPU.setFullScaleGyroRange(Gscale);
     MPU.setFullScaleAccelRange(Ascale);
     MPU.setRate(rate); // Gyroscope Output Rate / (1 + SMPLRT_DIV) = Sample Rate
     MPU.setDLPFMode(dlpf);
-    // use the code below to change accel/gyro offset values
-
     
     Serial.begin(115200);
-
+    // Verificar Conexion
+    //Serial.println("Probando Conexion con IMU...");
+    //Serial.println(MPU.testConnection() ? "MPU6050 conectado exitosamente" : "Fallo al conectar MPU6050");
     /*
+     use the code below to change accel/gyro offset values
     Serial.println("Updating internal sensor offsets...");
     // -76  -2359 1688  0 0 0
     Serial.print(MPU.getXAccelOffset()); Serial.print("\t"); // -76
@@ -89,8 +80,7 @@ void setup(){
     MPU.setXGyroOffset(220);
     MPU.setYGyroOffset(76);
     MPU.setZGyroOffset(-85);
-    */
-    
+    */   
    
     /*Serial.print(MPU.getXAccelOffset()); Serial.print("\t"); // -76
     Serial.print(MPU.getYAccelOffset()); Serial.print("\t"); // -2359
@@ -110,11 +100,10 @@ void loop() {
      if (Serial.available()){
           char key = Serial.read();
           char value= Serial.parseInt();
-          changeranges(key,value);
-          //Serial.print("Cambios");
-          //delay(1000);
-    }
+          cambiarConfiguraciones(key,value);
+    }    
     else{
+    
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
         //prints time since program started
         obtenerDatos();
@@ -122,7 +111,6 @@ void loop() {
         //Serial.println("1");
         //Serial.println(MPU.getRate());
         //Serial.println(MPU.getDLPFMode());
-        //obtenerAngulos();
       }
     }
     
@@ -140,19 +128,13 @@ void loop() {
         Serial.print("Sample Rate: ");Serial.println(8000/(1+rate));
         Serial.print("Muestras: ");Serial.println(cuentas);
         Serial.print("Tiempo: ");Serial.println(time);
-        
         delay(100000);
     }
     */    
 }
 
 void obtenerDatos(){
-     MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    
-    // these methods (and a few others) are also available
-    //MPU.getAcceleration(&ax, &ay, &az);
-    //MPU.getRotation(&gx, &gy, &gz);
-       
+    MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);    
     Serial.print(ax/A_R[Ascale]); Serial.print(" ");
     Serial.print(ay/A_R[Ascale]); Serial.print(" ");
     Serial.print(az/A_R[Ascale]); Serial.print(" ");
@@ -161,42 +143,7 @@ void obtenerDatos(){
     Serial.println(gz/G_R[Gscale]);
 }
 
-void obtenerAngulos(){
-      MPU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-      double Ax,Ay,Az;
-      double Gy,Gx,Gz;
-      Ax = -1*ax/A_R[Ascale];
-      Ay = -1*ay/A_R[Ascale];
-      Az = az/A_R[Ascale];
-      Gx = -1*gx/G_R[Gscale];
-      Gy = -1*gy/G_R[Gscale];
-      Gz = gz/G_R[Gscale];
-      
-      //Se calculan los angulos X, Y respectivamente con la IMU horizontal.
-      //Acc[0] = atan((ay/A_R[Ascale])/sqrt(pow((ax/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
-      //Acc[1] = atan(-1*(ax/A_R[Ascale])/sqrt(pow((ay/A_R[Ascale]),2) + pow((az/A_R[Ascale]),2)))*RAD_TO_DEG;
-      
-      //Se calculan los angulos con la IMU vertical.
-      Acc[0] = atan(Az/sqrt(pow(Ax,2) + pow(Ay,2)))*RAD_TO_DEG;
-      Acc[1] = atan(Ax/sqrt(pow(Az,2) + pow(Ay,2)))*RAD_TO_DEG;
-      //Aplicar el Filtro Complementario
-
-      double dt=(double)(micros()-timer)/1000000;
-      timer = micros();
-
-      //Angle_compl[1] = 0.98 *(Angle_compl[1]+gy/G_R[Gscale]*dt) + 0.02*Acc[1];
-      
-      Angle_compl[0] = 0.98 *(Angle_compl[0]+gx/G_R[Gscale]*dt) + 0.02*Acc[0];
-      Angle_compl[1] = 0.98 *(Angle_compl[1]+gz/G_R[Gscale]*dt) + 0.02*Acc[1];
-      
-    
-     //Mostrar los valores por consola
-     Serial.print(Angle_compl[0]); Serial.print(" ");
-     Serial.println(Angle_compl[1]);
-}
-
-void changeranges(char key,int value)
+void cambiarConfiguraciones(char key,int value)
 {
   if (key == 'g'){
     switch (value) {
