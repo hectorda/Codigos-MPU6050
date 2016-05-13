@@ -77,13 +77,13 @@ int Gscale=GFS_250DPS;
 #define DLPF_CFG 0 //Configurar Low Pass Filter interno
 #define SMPLRT_DIV 39 //Divisor de la frecuencia de salida
 #define TEMP_FIFO_EN 0 //Desactivar FIFO TEMP
+int cont=0;
 
 void setup() {
   Wire.begin();
   Wire.setClock(400);
   Serial.begin(115200);
   inicializarMPU6050();
-  timer = micros(); //Para calcular dt   
 }
 
 void loop(){
@@ -92,17 +92,20 @@ void loop(){
           char key = Serial.read();
           char value= Serial.parseInt();
           cambiarRangos(key,value);
+          cont++;
           //Serial.print("Cambios");
           //delay(1000);
     }
-    //Serial.print("sin 0x01 ");Serial.println(leerRegistro(INT_STATUS));
-    //Serial.print("con 0x01 ");Serial.println(leerRegistro(INT_STATUS) & 0x01);
-    if(leerRegistro(INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
-    //  if(leerRegistro(INT_STATUS)){
-            //Escuchando para cambiar :)
-   
-      imprimirAngulos();
-      //imprimirMuestras();
+    if(cont==4){
+      //Serial.print("sin 0x01 ");Serial.println(leerRegistro(INT_STATUS));
+      //Serial.print("con 0x01 ");Serial.println(leerRegistro(INT_STATUS) & 0x01);
+      if(leerRegistro(INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
+      //  if(leerRegistro(INT_STATUS)){
+              //Escuchando para cambiar :)
+     
+        //imprimirAngulos();
+        imprimirMuestras();
+      }
     }    
 }
 
@@ -270,22 +273,18 @@ void cambiarRangos(char key,int value)
       case 0:
         Gscale=GFS_250DPS;
         setFullScaleGyroRange();
-        Serial.print("RangoGiroscopio: 250dps");
         break;
       case 1:
         Gscale=GFS_500DPS;
         setFullScaleGyroRange();
-        Serial.print("RangoGiroscopio: 500dps");
         break;
       case 2:
         Gscale=GFS_1000DPS;
         setFullScaleGyroRange();
-        Serial.print("RangoGiroscopio: 1000dps");
         break;
       case 3:
         Gscale=GFS_2000DPS;
         setFullScaleGyroRange();
-        Serial.print("RangoGiroscopio: 2000dps");
         break;
       
       default: 
@@ -299,22 +298,18 @@ void cambiarRangos(char key,int value)
       case 0:
         Ascale=AFS_2G;
         setFullScaleAccelRange();
-        Serial.print("RangoAcelerometro: 2G");
         break;
       case 1:
         Ascale=AFS_4G;
         setFullScaleAccelRange();
-        Serial.print("RangoAcelerometro: 4G");
         break;
       case 2:
         Ascale=AFS_8G;
         setFullScaleAccelRange();
-        Serial.print("RangoAcelerometro: 8G");
         break;
       case 3:
         Ascale=AFS_16G;
         setFullScaleAccelRange();
-        Serial.print("RangoAcelerometro: 16G");
         break;
       
       default: 
@@ -323,6 +318,12 @@ void cambiarRangos(char key,int value)
       break;
     }
   }  
+  if (key == 's'){
+    escribirRegistro(SMPRT_DIV, value);//Configurar Sample Rate
+  }
+  if (key == 'l'){
+    escribirRegistro(CONFIG, value);//Configurar Filtro
+  }
   return;
 }
 
