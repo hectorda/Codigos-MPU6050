@@ -49,6 +49,7 @@ int Gscale=GFS_250DPS;
 int rate=39; //39 para 200 Hz
 //Filtro Pasa-Bajo Digital
 int dlpf=0;
+int cont=0;
 
 unsigned long time;//Para medir las cuentas internas
 int cuentas=0;
@@ -95,15 +96,15 @@ void setup(){
 }
 
 void loop() {
-
   //Escuchando para cambiar :)  
      if (Serial.available()){
           char key = Serial.read();
           char value= Serial.parseInt();
           cambiarConfiguraciones(key,value);
-    }    
-    else{
+          cont++;
+    }
     
+    else{    
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
         //prints time since program started
         obtenerDatos();
