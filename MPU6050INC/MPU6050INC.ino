@@ -102,9 +102,8 @@ void loop() {
           char value= Serial.parseInt();
           cambiarConfiguraciones(key,value);
           cont++;
-    }
-    
-    else{    
+    } 
+    if (cont==4){    
       if(MPU.getIntStatus()){//Se ve si hay interrupcion
         //prints time since program started
         obtenerDatos();
