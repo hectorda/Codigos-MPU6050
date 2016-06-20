@@ -44,8 +44,8 @@ Hardware setup:
 //Variables donde almacenar muestras
 double AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 //Conversion de Acelerometro y Giroscopio
-double A_R[4]={-16384,-8192,-4096,-2048};
-double G_R[4]={-131,-65.5,-32.8,-16.4};
+double A_R[4]={16384,8192,4096,2048};
+double G_R[4]={131,65.5,32.8,16.4};
 
 //Angulos
 float Acc[2];
@@ -88,25 +88,17 @@ void setup() {
 
 void loop(){
 
-    if (Serial.available()){
+    if (Serial.available()){ //Escuchando para cambiar :)
           char key = Serial.read();
           char value= Serial.parseInt();
           cambiarRangos(key,value);
           cont++;
-          //Serial.print("Cambios");
-          //delay(1000);
     }
     if(cont==4){
-      //Serial.print("sin 0x01 ");Serial.println(leerRegistro(INT_STATUS));
-      //Serial.print("con 0x01 ");Serial.println(leerRegistro(INT_STATUS) & 0x01);
-      if(leerRegistro(INT_STATUS) & 0x01) { //Comprobamos si hay una interrupcion
-      //  if(leerRegistro(INT_STATUS)){
-              //Escuchando para cambiar :)
-     
+      if(leerRegistro(INT_STATUS) & 0x01)  //Comprobamos si hay una interrupcion
         //imprimirAngulos();
-        imprimirMuestras();
-      }
-    }    
+        imprimirMuestras();      
+    }
 }
 
 void inicializarMPU6050(){// Inicializa la configuracion de MPU6050
@@ -142,16 +134,16 @@ void leerGyroscopio(){
 void leerMuestras(){
 
     Wire.beginTransmission(MPU6050);      
-      Wire.write(ACCEL_XOUT_H); // starting with register 0x3B (ACCEL_XOUT_H)
-      Wire.endTransmission(false);
-      Wire.requestFrom(MPU6050,14,true); //A partir del 0x3B, se piden 6 registros      
-      AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
-      AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-      AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-      double tmp= Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L);
-      GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-      GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-      GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L) 
+    Wire.write(ACCEL_XOUT_H); // starting with register 0x3B (ACCEL_XOUT_H)
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU6050,14,true); //A partir del 0x3B, se piden 6 registros      
+    AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
+    AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+    AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+    double tmp= Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L);
+    GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+    GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+    GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L) 
     /*
      * 
      //------Lectura Acelerometro---------
@@ -199,27 +191,12 @@ void leerAngulos(){
 
 void imprimirMuestras(){    
     leerMuestras();
-    //leerAcelerometro();
-    //leerGyroscopio();
-    //Imprimir Valores de Config
-    /*
-    Serial.print(" Escala Ac:");Serial.print(leerRegistro(ACCEL_CONFIG)>>3);
-    Serial.print(" Escala Gy:");Serial.print(leerRegistro(GYRO_CONFIG)>>3);
-    Serial.print(" LPF:");Serial.print(leerRegistro(CONFIG));
-    Serial.print(" Frecuencia:");Serial.print(8000/(1+leerRegistro(SMPRT_DIV)));
-    Serial.print(" Leer Divisor:");Serial.print(leerRegistro(SMPRT_DIV));
-    Serial.print(" FIFOEN:");Serial.print(leerRegistro(FIFO_EN)); 
-    Serial.print(" Divisor Ac:");Serial.print(A_R[Ascale]);
-    Serial.print(" Divisor Gy:");Serial.print(G_R[Gscale]);
-    Serial.println();
-    */
 
     //---Imprimir Aceletrometro---
     Serial.print(AcX/A_R[Ascale]);Serial.print(" ");
     Serial.print(AcY/A_R[Ascale]);Serial.print(" "); 
     Serial.print(AcZ/A_R[Ascale]);Serial.print(" ");
-    
-    
+        
     //---Imprimir Gyroscopio---
     Serial.print(GyX/G_R[Gscale]);Serial.print(" ");
     Serial.print(GyY/G_R[Gscale]);Serial.print(" ");
@@ -231,9 +208,8 @@ void imprimirMuestras(){
 void imprimirAngulos(){
     leerMuestras();
     leerAngulos();
-  //Mostrar los valores por consola
-     Serial.print(Angle_compl[0]); Serial.print(" ");
-     Serial.println(Angle_compl[1]);
+    Serial.print(Angle_compl[0]); Serial.print(" ");
+    Serial.println(Angle_compl[1]);
   
   }
 
